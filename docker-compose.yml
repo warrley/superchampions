@@ -4,15 +4,15 @@ services:
     container_name: sc-postgres
     restart: unless-stopped
     ports:
-      - "5432:5432"
+      - "${DB_PORT:-5432}:5432"
     environment:
-      POSTGRES_USER: superchampions
-      POSTGRES_PASSWORD: superchampions
-      POSTGRES_DB: superchampions
+      POSTGRES_USER: ${DB_USER:-superchampions}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-superchampions}
+      POSTGRES_DB: ${DB_NAME:-superchampions}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U superchampions" ]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-superchampions}"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -24,11 +24,11 @@ services:
     container_name: sc-backend
     restart: unless-stopped
     ports:
-      - "7182:7182"
+      - "${PORT:-7182}:${PORT:-7182}"
     environment:
-      DATABASE_URL: postgresql://superchampions:superchampions@postgres:5432/superchampions
-      PORT: 7182
-      NODE_ENV: development
+      DATABASE_URL: postgresql://${DB_USER:-superchampions}:${DB_PASSWORD:-superchampions}@postgres:5432/${DB_NAME:-superchampions}
+      PORT: ${PORT:-7182}
+      NODE_ENV: ${NODE_ENV:-development}
     volumes:
       - ./backend/src:/app/backend/src
     depends_on:
@@ -42,9 +42,9 @@ services:
     container_name: sc-frontend
     restart: unless-stopped
     ports:
-      - "3001:3000"
+      - "${FRONTEND_PORT:-3001}:3000"
     environment:
-      NEXT_PUBLIC_API_URL: http://localhost:7182/api
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:7182/api}
     volumes:
       - ./frontend/src:/app/frontend/src
     depends_on:
